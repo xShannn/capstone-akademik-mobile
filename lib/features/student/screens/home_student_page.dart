@@ -490,6 +490,7 @@ class _HomeStudentPageState extends State<HomeStudentPage> {
       ),
       child: Column(
         children: [
+          // Table Header
           Container(
             padding: const EdgeInsets.symmetric(vertical: 12),
             decoration: const BoxDecoration(
@@ -550,50 +551,35 @@ class _HomeStudentPageState extends State<HomeStudentPage> {
               ],
             ),
           ),
+
+          // Table Rows dengan jadwal yang sudah divariasikan untuk anak IPA
           _buildScheduleRow(
             '07:15',
             'MAT',
-            'B.indo',
-            'Sejarah',
-            'Agama',
             'Fisika',
+            'Kimia',
+            'Biologi',
+            'Agama',
           ),
           const Divider(height: 1, color: Color(0xFFF0F0F0)),
+
           _buildScheduleRow(
             '08:15',
             'MAT',
-            'B.indo',
-            'Sejarah',
-            'Agama',
             'Fisika',
+            'Kimia',
+            'Biologi',
+            'Agama',
           ),
           const Divider(height: 1, color: Color(0xFFF0F0F0)),
-          _buildScheduleRow(
-            '09:15',
-            'MAT',
-            'B.indo',
-            'Sejarah',
-            'Agama',
-            'Fisika',
-          ),
+
+          _buildScheduleRow('09:15', 'B.Ing', 'PKN', 'MAT', 'Sejarah', 'B.Ind'),
           const Divider(height: 1, color: Color(0xFFF0F0F0)),
-          _buildScheduleRow(
-            '11:30',
-            'MAT',
-            'B.indo',
-            'Sejarah',
-            'Agama',
-            'Fisika',
-          ),
+
+          _buildScheduleRow('11:30', 'B.Ing', 'PKN', 'MAT', 'Sejarah', 'B.Ind'),
           const Divider(height: 1, color: Color(0xFFF0F0F0)),
-          _buildScheduleRow(
-            '13:00',
-            'MAT',
-            'B.indo',
-            'Sejarah',
-            'Agama',
-            'Fisika',
-          ),
+
+          _buildScheduleRow('13:00', 'SBK', 'PJOK', 'TIK', 'PKWU', 'BK'),
         ],
       ),
     );
