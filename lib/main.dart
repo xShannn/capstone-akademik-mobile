@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 // Silakan sesuaikan 'nama_project_kamu' dengan nama aplikasi yang tertera di pubspec.yaml
-import 'package:mobile_sekolah/features/auth/screens/login_page.dart';
+import 'package:mobile_sekolah/features/splash/splash_page.dart';
+import 'package:mobile_sekolah/core/constants/app_colors.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,26 +16,30 @@ class MyApp extends StatelessWidget {
       title: 'Baitul Insan App',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        useMaterial3: true,
+
         fontFamily: 'Roboto',
-        scaffoldBackgroundColor: Colors.white,
+
+        scaffoldBackgroundColor: AppColors.background,
+
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
+
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+
+            foregroundColor: AppColors.white,
+
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(
-                20,
-              ), // Ganti angka
+              borderRadius: BorderRadius.circular(20),
             ),
           ),
         ),
       ),
-      home: const LoginPage(), // Memanggil halaman login yang sudah dipisah
+      home: const SplashPage(), // Memanggil halaman login yang sudah dipisah
     );
   }
 }
-
-
-
-
 
 // import 'package:flutter/material.dart';
 
@@ -68,7 +73,7 @@ class MyApp extends StatelessWidget {
 
 // class _LoginPageState extends State<LoginPage> {
 //   // Menyimpan state role yang sedang dipilih
-//   String selectedRole = 'Teacher'; 
+//   String selectedRole = 'Teacher';
 
 //   @override
 //   Widget build(BuildContext context) {
@@ -80,7 +85,7 @@ class MyApp extends StatelessWidget {
 //             crossAxisAlignment: CrossAxisAlignment.center,
 //             children: [
 //               const SizedBox(height: 60),
-              
+
 //               // Tempat Logo (Silakan ganti dengan Image.asset jika logo sudah ada)
 //               Container(
 //                 height: 100,
@@ -88,10 +93,10 @@ class MyApp extends StatelessWidget {
 //                 decoration: const BoxDecoration(
 //                   shape: BoxShape.circle,
 //                 ),
-//                 child: const Icon(Icons.shield, size: 80, color: Colors.green), 
+//                 child: const Icon(Icons.shield, size: 80, color: Colors.green),
 //               ),
 //               const SizedBox(height: 32),
-              
+
 //               // Heading
 //               const Text(
 //                 'Welcome Back',
@@ -110,7 +115,7 @@ class MyApp extends StatelessWidget {
 //                 ),
 //               ),
 //               const SizedBox(height: 40),
-              
+
 //               // Input Email
 //               TextField(
 //                 decoration: InputDecoration(
@@ -125,7 +130,7 @@ class MyApp extends StatelessWidget {
 //                 ),
 //               ),
 //               const SizedBox(height: 16),
-              
+
 //               // Input Password
 //               TextField(
 //                 obscureText: true,
@@ -141,7 +146,7 @@ class MyApp extends StatelessWidget {
 //                 ),
 //               ),
 //               const SizedBox(height: 24),
-              
+
 //               // Label Role
 //               const Align(
 //                 alignment: Alignment.centerLeft,
@@ -155,7 +160,7 @@ class MyApp extends StatelessWidget {
 //                 ),
 //               ),
 //               const SizedBox(height: 12),
-              
+
 //               // Opsi Pilihan Role
 //               Row(
 //                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -168,7 +173,7 @@ class MyApp extends StatelessWidget {
 //                 ],
 //               ),
 //               const SizedBox(height: 32),
-              
+
 //               // Tombol Login
 //               SizedBox(
 //                 width: double.infinity,
@@ -187,15 +192,15 @@ class MyApp extends StatelessWidget {
 //                   child: const Text(
 //                     'BUTTON',
 //                     style: TextStyle(
-//                       fontSize: 16, 
-//                       fontWeight: FontWeight.bold, 
+//                       fontSize: 16,
+//                       fontWeight: FontWeight.bold,
 //                       color: Colors.white
 //                     ),
 //                   ),
 //                 ),
 //               ),
 //               const SizedBox(height: 16),
-              
+
 //               // Lupa Password
 //               TextButton(
 //                 onPressed: () {},
@@ -208,7 +213,7 @@ class MyApp extends StatelessWidget {
 //                 ),
 //               ),
 //               const SizedBox(height: 60),
-              
+
 //               // Footer
 //               const Text(
 //                 'Baitul Insan v.1 • Secure Login',

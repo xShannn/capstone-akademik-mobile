@@ -185,64 +185,6 @@ class _HomeStudentPageState extends State<HomeStudentPage> {
         ),
       ),
     );
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF0F42B3), Color(0xFF2E65E5)],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Today, 30 April 2026',
-                style: TextStyle(color: Colors.white70, fontSize: 12),
-              ),
-              SizedBox(height: 4),
-              Text(
-                'Class X IPA 1',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 4),
-              Text(
-                'Attendance: 92%',
-                style: TextStyle(color: Colors.white70, fontSize: 12),
-              ),
-            ],
-          ),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.transparent,
-              border: Border.all(color: Colors.white38, width: 2),
-            ),
-            child: const Column(
-              children: [
-                Icon(Icons.qr_code_scanner, color: Colors.white, size: 28),
-                SizedBox(height: 4),
-                Text(
-                  'Presensi',
-                  style: TextStyle(color: Colors.white, fontSize: 10),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   // --- BAGIAN INI UNTUK PANAH SEE MORE ---

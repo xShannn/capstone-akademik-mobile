@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_sekolah/features/auth/widgets/custom_text_field.dart';
 import 'package:mobile_sekolah/features/student/screens/main_student_page.dart';
+import 'package:mobile_sekolah/features/teacher/screens/home_teacher_page.dart';
+import 'package:mobile_sekolah/features/parent/screens/home_parent_page.dart';
+import 'package:mobile_sekolah/features/admin/screens/home_admin_page.dart';
+import 'package:mobile_sekolah/services/api_service.dart';
+import 'package:mobile_sekolah/services/storage_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -11,7 +16,9 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   // Menyimpan state role yang sedang dipilih
-  String selectedRole = 'Teacher';
+  String selectedRole = '';
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -50,13 +57,18 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 40),
 
               // Input Email menggunakan Custom Widget
-              const CustomTextField(hintText: 'Email Address'),
+              CustomTextField(
+                hintText: 'Email Address',
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+              ),
               const SizedBox(height: 16),
 
               // Input Password menggunakan Custom Widget
-              const CustomTextField(
+              CustomTextField(
                 hintText: 'Password',
                 isObscure: true, // Menyensor teks password
+                controller: _passwordController,
               ),
               const SizedBox(height: 24),
 
@@ -83,6 +95,8 @@ class _LoginPageState extends State<LoginPage> {
                   _buildRoleButton('Student'),
                   const SizedBox(width: 8),
                   _buildRoleButton('Parent'),
+                  const SizedBox(width: 8),
+                  _buildRoleButton('Admin'),
                 ],
               ),
               const SizedBox(height: 32),
@@ -92,26 +106,98 @@ class _LoginPageState extends State<LoginPage> {
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Logika login diletakkan di sini
-                    if (selectedRole == 'Student') {
-                      // Pindah ke halaman Home Student dan buang halaman Login dari tumpukan memori
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const MainStudentPage(),
-                        ),
-                      );
-                    } else {
-                      // Karena Teacher dan Parent belum ada halamannya, kita beri alert/pesan sementara
+                  onPressed: () async {
+                    final email = _emailController.text.trim();
+                    final password = _passwordController.text;
+
+                    if (email.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Halaman untuk $selectedRole sedang dalam pengembangan!',
-                          ),
-                          backgroundColor: Colors.orange,
+                        const SnackBar(
+                          content: Text('Email tidak boleh kosong'),
                         ),
                       );
+                      return;
+                    }
+
+                    if (password.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Password tidak boleh kosong'),
+                        ),
+                      );
+                      return;
+                    }
+
+                    if (selectedRole.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Role belum dipilih')),
+                      );
+                      return;
+                    }
+
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (_) =>
+                          const Center(child: CircularProgressIndicator()),
+                    );
+
+                    final result = await ApiService.login(
+                      role: selectedRole,
+                      email: email,
+                      password: password,
+                    );
+
+                    if (!mounted) return;
+
+                    Navigator.of(context, rootNavigator: true).pop();
+
+                    if (result['success'] == true) {
+                      final data = result['data'];
+
+                      final token = data['token'];
+
+                      final user = data['user'];
+
+                      await StorageService.saveToken(token);
+
+                      await StorageService.saveUser(user);
+
+                      if (selectedRole == 'Student') {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const MainStudentPage(),
+                          ),
+                        );
+                      } else if (selectedRole == 'Teacher') {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const HomeTeacherPage(),
+                          ),
+                        );
+                      } else if (selectedRole == 'Parent') {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const HomeParentPage(),
+                          ),
+                        );
+                      } else if (selectedRole == 'Admin') {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const HomeAdminPage(),
+                          ),
+                        );
+                      }
+                    } else {
+                      final msg = result['message'] ?? 'Gagal login';
+
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text(msg.toString())));
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -197,5 +283,12 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 }
