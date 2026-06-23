@@ -10,12 +10,12 @@ class AttendanceManualPage extends StatefulWidget {
 }
 
 class _AttendanceManualPageState extends State<AttendanceManualPage> {
-  late final List<AttendanceModel> attendance;
+  late Future<List<AttendanceModel>> _attendanceFuture;
 
   @override
   void initState() {
     super.initState();
-    attendance = TeacherService.getAttendanceList();
+    _attendanceFuture = TeacherService.getAttendanceList();
   }
 
   @override
@@ -25,71 +25,91 @@ class _AttendanceManualPageState extends State<AttendanceManualPage> {
         title: const Text('Manual Attendance'),
         backgroundColor: const Color(0xFF093FB4),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(20),
-        itemCount: attendance.length,
-        itemBuilder: (context, index) {
-          final item = attendance[index];
-          return Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 12,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 24,
-                  backgroundColor: const Color(0xFFEFF3FF),
-                  child: Text(
-                    item.studentName
-                        .split(' ')
-                        .map((e) => e.isNotEmpty ? e[0] : '')
-                        .take(2)
-                        .join(),
-                    style: const TextStyle(
-                      color: Color(0xFF093FB4),
-                      fontWeight: FontWeight.bold,
+      body: FutureBuilder<List<AttendanceModel>>(
+        future: _attendanceFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text(snapshot.error.toString()));
+          }
+
+          final attendance = snapshot.data ?? [];
+          if (attendance.isEmpty) {
+            return const Center(
+              child: Text('Tidak ada data presensi tersedia.'),
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(20),
+            itemCount: attendance.length,
+            itemBuilder: (context, index) {
+              final item = attendance[index];
+              return Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
                     ),
-                  ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.studentName,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'NIS ${item.nis}',
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: const Color(0xFFEFF3FF),
+                      child: Text(
+                        item.studentName
+                            .split(' ')
+                            .map((e) => e.isNotEmpty ? e[0] : '')
+                            .take(2)
+                            .join(),
                         style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
+                          color: Color(0xFF093FB4),
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        item.detail,
-                        style: const TextStyle(color: Colors.black87),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.studentName,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'NIS ${item.nis}',
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            item.detail,
+                            style: const TextStyle(color: Colors.black87),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 12),
+                    _statusChip(item.status),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                _statusChip(item.status),
-              ],
-            ),
+              );
+            },
           );
         },
       ),

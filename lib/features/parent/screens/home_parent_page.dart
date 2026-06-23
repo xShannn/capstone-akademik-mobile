@@ -6,7 +6,9 @@ import '../widgets/parent_child_card.dart';
 import '../widgets/parent_stat_card.dart';
 import '../widgets/parent_bottom_navbar.dart';
 import 'child_profile_page.dart';
-import 'notification_page.dart';
+import 'package:mobile_sekolah/shared/screens/notification_page.dart';
+import 'package:mobile_sekolah/services/storage_service.dart';
+import 'package:mobile_sekolah/services/api_service.dart';
 
 class HomeParentPage extends StatefulWidget {
   const HomeParentPage({super.key});
@@ -20,20 +22,50 @@ class _HomeParentPageState extends State<HomeParentPage> {
 
   @override
   Widget build(BuildContext context) {
-    final parent = ParentService.getParent();
-    final children = parent.children;
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FF),
       appBar: AppBar(
         backgroundColor: const Color(0xFF093FB4),
-        elevation: 0,
         title: const Text('Parent Dashboard'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const NotificationPage()),
+              );
+            },
+          ),
+        ],
       ),
-      body: _buildBody(parent, children),
+
+      body: FutureBuilder<ParentModel?>(
+        future: ParentService.getParent(),
+
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (!snapshot.hasData || snapshot.data == null) {
+            return const Center(child: Text('Data parent tidak ditemukan'));
+          }
+
+          final parent = snapshot.data!;
+          final children = parent.children;
+
+          return _buildBody(parent, children);
+        },
+      ),
+
       bottomNavigationBar: ParentBottomNavbar(
         selectedIndex: _selectedIndex,
-        onTap: (index) => setState(() => _selectedIndex = index),
+
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
       ),
     );
   }
@@ -58,9 +90,9 @@ class _HomeParentPageState extends State<HomeParentPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Hi, Ibu Siti',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          Text(
+            'Hi, ${parent.name}',
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           const Text(
@@ -78,13 +110,25 @@ class _HomeParentPageState extends State<HomeParentPage> {
                 color: const Color(0xFF093FB4),
               ),
               ParentStatCard(
-                label: 'Rata-rata nilai',
-                value: '86.5',
+                label: 'Rata-rata Nilai',
+
+                value: children.isEmpty
+                    ? '0'
+                    : (children
+                                  .map((e) => e.averageScore)
+                                  .reduce((a, b) => a + b) /
+                              children.length)
+                          .toStringAsFixed(1),
+
                 color: const Color(0xFF22C55E),
               ),
               ParentStatCard(
                 label: 'Presensi',
-                value: '93%',
+
+                value: children.isEmpty
+                    ? '0%'
+                    : '${(children.map((e) => e.attendanceRate).reduce((a, b) => a + b) / children.length).toStringAsFixed(0)}%',
+
                 color: const Color(0xFFFACC15),
               ),
             ],
@@ -159,6 +203,37 @@ class _HomeParentPageState extends State<HomeParentPage> {
           _infoRow('Email', parent.email),
           const SizedBox(height: 12),
           _infoRow('Phone', parent.phone),
+          const SizedBox(height: 40),
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.logout, color: Colors.white),
+              label: const Text(
+                'Logout',
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+              ),
+              onPressed: () async {
+                final token = await StorageService.getToken();
+                if (token != null) {
+                  await ApiService.logout(token);
+                }
+                if (context.mounted) {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    '/login',
+                    (route) => false,
+                  );
+                }
+              },
+            ),
+          ),
         ],
       ),
     );

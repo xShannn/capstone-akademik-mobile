@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:mobile_sekolah/services/api_service.dart';
+import 'package:mobile_sekolah/services/storage_service.dart';
+
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
 
@@ -8,73 +11,221 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  // Controller untuk mengisi nilai default pada form
-  final TextEditingController _nameController = TextEditingController(
-    text: 'Mas Akhlis K.',
-  );
-  final TextEditingController _emailController = TextEditingController(
-    text: 'akhlis.k@sman1.sch.id',
-  );
-  final TextEditingController _phoneController = TextEditingController(
-    text: '+62 812-3456-7890',
-  );
-  final TextEditingController _addressController = TextEditingController(
-    text: 'Jl. Merdeka No. 12, Semarang',
-  );
+  bool isLoading = true;
+
+  final nameController = TextEditingController();
+
+  final emailController = TextEditingController();
+
+  final phoneController = TextEditingController();
+
+  final addressController = TextEditingController();
+
+  String role = '';
+
+  String subtitle = '';
+
+  @override
+  void initState() {
+    super.initState();
+
+    loadProfile();
+  }
+
+  Future<void> loadProfile() async {
+    try {
+      final user = await StorageService.getUser();
+
+      if (user != null) {
+        nameController.text = user['nama_lengkap'] ?? user['name'] ?? '';
+
+        emailController.text = user['email'] ?? '';
+
+        phoneController.text = user['nomor_telepon'] ?? '';
+
+        addressController.text = user['alamat'] ?? '';
+
+        role = user['role'] ?? 'Student';
+
+        subtitle = user['class_name'] ?? '';
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+  Future<void> saveProfile() async {
+    try {
+      final token = await StorageService.getToken();
+
+      if (token == null) return;
+
+      final result = await ApiService.putData(
+        endpoint: '/profile',
+
+        token: token,
+
+        data: {
+          'email': emailController.text,
+
+          'nomor_telepon': phoneController.text,
+
+          'alamat': addressController.text,
+        },
+      );
+
+      if (!mounted) return;
+
+      if (result['status'] == 'success') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile berhasil diupdate'),
+
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'].toString()),
+
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
 
   @override
   void dispose() {
-    // Pastikan controller dihapus dari memori saat halaman ditutup
-    _nameController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
-    _addressController.dispose();
+    nameController.dispose();
+
+    emailController.dispose();
+
+    phoneController.dispose();
+
+    addressController.dispose();
+
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    final initials = nameController.text
+        .split(' ')
+        .map((e) => e[0])
+        .take(2)
+        .join()
+        .toUpperCase();
+
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: const Color(0xFF0F42B3),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Edit Profile',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
+
+        title: const Text('Edit Profile'),
       ),
+
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _buildHeader(),
-            Padding(
-              padding: const EdgeInsets.all(24.0),
+            Container(
+              width: double.infinity,
+
+              color: const Color(0xFF0F42B3),
+
+              padding: const EdgeInsets.all(25),
+
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildTextField(
-                    'Full Name',
-                    _nameController,
-                    isReadOnly: true,
+                  CircleAvatar(
+                    radius: 45,
+
+                    backgroundColor: Colors.white,
+
+                    child: Text(
+                      initials,
+
+                      style: const TextStyle(
+                        fontSize: 28,
+
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 16),
-                  _buildTextField('Email', _emailController),
-                  const SizedBox(height: 16),
-                  _buildTextField('Phone', _phoneController),
-                  const SizedBox(height: 16),
-                  _buildTextField('Address', _addressController),
+
+                  const SizedBox(height: 15),
+
+                  Text(
+                    nameController.text,
+
+                    style: const TextStyle(
+                      color: Colors.white,
+
+                      fontSize: 22,
+
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  Text(
+                    '$role $subtitle',
+
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                ],
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.all(24),
+
+              child: Column(
+                children: [
+                  buildField('Nama', nameController, true),
+
+                  const SizedBox(height: 15),
+
+                  buildField('Email', emailController, false),
+
+                  const SizedBox(height: 15),
+
+                  buildField('Telepon', phoneController, false),
+
+                  const SizedBox(height: 15),
+
+                  buildField('Alamat', addressController, false),
 
                   const SizedBox(height: 40),
-                  _buildSaveButton(),
+
+                  SizedBox(
+                    width: double.infinity,
+
+                    height: 55,
+
+                    child: ElevatedButton(
+                      onPressed: saveProfile,
+
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0F42B3),
+                      ),
+
+                      child: const Text('Simpan'),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -84,153 +235,22 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  // ==========================================
-  // WIDGET HEADER (Warna Biru + Avatar)
-  // ==========================================
-  Widget _buildHeader() {
-    return Container(
-      width: double.infinity,
-      color: const Color(0xFF0F42B3),
-      padding: const EdgeInsets.only(bottom: 32.0, top: 16.0),
-      child: Column(
-        children: [
-          Container(
-            width: 90,
-            height: 90,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: const Color(0xFF3B68C8),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.5),
-                width: 3,
-              ),
-            ),
-            child: const Center(
-              child: Text(
-                'AK',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'Mas Akhlis K.',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Text(
-              'Student - X IPA 1',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
-      ),
-    );
-  }
-
-  // ==========================================
-  // WIDGET CUSTOM TEXT FIELD
-  // ==========================================
-  Widget _buildTextField(
+  Widget buildField(
     String label,
-    TextEditingController controller, {
-    bool isReadOnly = false,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: Colors.grey,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: controller,
-          readOnly: isReadOnly, // Mematikan fungsi ketik jika true
-          style: TextStyle(
-            // Warna teks agak pudar jika tidak bisa diedit
-            color: isReadOnly ? Colors.grey.shade600 : const Color(0xFF1A1A24),
-          ),
-          decoration: InputDecoration(
-            filled: true,
-            // Warna latar abu-abu jika tidak bisa diedit
-            fillColor: isReadOnly ? Colors.grey.shade100 : Colors.white,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFF0F42B3),
-                width: 1.5,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
-  // ==========================================
-  // WIDGET TOMBOL SAVE
-  // ==========================================
-  Widget _buildSaveButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 55,
-      child: ElevatedButton(
-        onPressed: () {
-          // Logika untuk mengirim data ke Backend (API) diletakkan di sini
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Profile updated successfully!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF0F42B3),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          elevation: 0,
-        ),
-        child: const Text(
-          'Save Changes',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+    TextEditingController controller,
+
+    bool readOnly,
+  ) {
+    return TextField(
+      controller: controller,
+
+      readOnly: readOnly,
+
+      decoration: InputDecoration(
+        labelText: label,
+
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

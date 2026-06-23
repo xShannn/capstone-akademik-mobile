@@ -3,8 +3,15 @@ import '../models/teacher_schedule_model.dart';
 
 class TeacherScheduleCard extends StatelessWidget {
   final TeacherScheduleModel item;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
-  const TeacherScheduleCard({super.key, required this.item});
+  const TeacherScheduleCard({
+    super.key,
+    required this.item,
+    this.onEdit,
+    this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,28 +29,50 @@ class TeacherScheduleCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            item.day,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.day,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  item.time,
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  item.subject,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${item.room} • ${item.className}',
+                  style: const TextStyle(color: Colors.black87),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            item.time,
-            style: const TextStyle(color: Colors.grey, fontSize: 12),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            item.subject,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '${item.room} • ${item.className}',
-            style: const TextStyle(color: Colors.black87),
-          ),
+          if (onEdit != null || onDelete != null)
+            Row(
+              children: [
+                if (onEdit != null)
+                  IconButton(
+                    icon: const Icon(Icons.edit, color: Colors.blue),
+                    onPressed: onEdit,
+                  ),
+                if (onDelete != null)
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: onDelete,
+                  ),
+              ],
+            ),
         ],
       ),
     );

@@ -163,30 +163,36 @@ class _LoginPageState extends State<LoginPage> {
 
                       await StorageService.saveUser(user);
 
-                      if (selectedRole == 'Student') {
+                      final role = user['role'];
+
+                      if (role == 'student') {
                         Navigator.pushReplacement(
                           context,
+
                           MaterialPageRoute(
                             builder: (_) => const MainStudentPage(),
                           ),
                         );
-                      } else if (selectedRole == 'Teacher') {
+                      } else if (role == 'teacher') {
                         Navigator.pushReplacement(
                           context,
+
                           MaterialPageRoute(
                             builder: (_) => const HomeTeacherPage(),
                           ),
                         );
-                      } else if (selectedRole == 'Parent') {
+                      } else if (role == 'parent') {
                         Navigator.pushReplacement(
                           context,
+
                           MaterialPageRoute(
                             builder: (_) => const HomeParentPage(),
                           ),
                         );
-                      } else if (selectedRole == 'Admin') {
+                      } else if (role == 'admin') {
                         Navigator.pushReplacement(
                           context,
+
                           MaterialPageRoute(
                             builder: (_) => const HomeAdminPage(),
                           ),

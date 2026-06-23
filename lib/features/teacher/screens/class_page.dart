@@ -11,55 +11,79 @@ class ClassPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final students = TeacherService.getStudentsByClass(classModel.id);
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(classModel.name),
+        title: Text(classModel.name, style: const TextStyle(color: Colors.white)),
         backgroundColor: const Color(0xFF093FB4),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _infoCard('Subject', classModel.subject),
-            const SizedBox(height: 12),
-            _infoCard('Room', classModel.room),
-            const SizedBox(height: 12),
-            _infoCard('Students', '${classModel.studentCount} siswa'),
-            const SizedBox(height: 20),
-            const Text(
-              'Students',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            const SizedBox(height: 12),
-            Column(
-              children: students.map((student) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: TeacherStudentCard(
-                    name: student['name'],
-                    nis: student['nis'],
-                    score: student['score'],
-                    attendance: student['attendance'],
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => InputGradesClassPage(
-                            classModel: classModel,
-                            studentName: student['name'],
-                          ),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: TeacherService.getStudentsByClass(classModel.id),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text(snapshot.error.toString()));
+          }
+
+          final students = snapshot.data ?? [];
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _infoCard('Subject', classModel.subject),
+                const SizedBox(height: 12),
+                _infoCard('Room', classModel.room),
+                const SizedBox(height: 12),
+                _infoCard('Students', '${classModel.studentCount} siswa'),
+                const SizedBox(height: 20),
+                const Text(
+                  'Students',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                const SizedBox(height: 12),
+                if (students.isEmpty)
+                  const Center(child: Text('Belum ada siswa dalam kelas ini.'))
+                else
+                  Column(
+                    children: students.map((student) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: TeacherStudentCard(
+                          name: student['name']?.toString() ?? '-',
+                          nis: student['nis']?.toString() ?? '-',
+                          score:
+                              int.tryParse(
+                                student['score']?.toString() ?? '',
+                              ) ??
+                              0,
+                          attendance:
+                              int.tryParse(
+                                student['attendance']?.toString() ?? '',
+                              ) ??
+                              0,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => InputGradesClassPage(
+                                  classModel: classModel,
+                                  student: student,
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       );
-                    },
+                    }).toList(),
                   ),
-                );
-              }).toList(),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

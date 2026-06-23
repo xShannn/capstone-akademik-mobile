@@ -1,137 +1,177 @@
-import '../models/attendance_model.dart';
-import '../models/teacher_class_model.dart';
-import '../models/teacher_schedule_model.dart';
+import 'package:mobile_sekolah/features/teacher/models/attendance_model.dart';
+import 'package:mobile_sekolah/features/teacher/models/teacher_class_model.dart';
+import 'package:mobile_sekolah/features/teacher/models/teacher_schedule_model.dart';
+import 'package:mobile_sekolah/services/api_service.dart';
+import 'package:mobile_sekolah/services/storage_service.dart';
 
 class TeacherService {
-  static List<TeacherClassModel> getTeacherClasses() {
-    return const [
-      TeacherClassModel(
-        id: 'xipa1',
-        name: 'X IPA 1',
-        subject: 'Matematika',
-        studentCount: 32,
-        attendanceRate: 94.5,
-        room: 'Lab 2',
-      ),
-      TeacherClassModel(
-        id: 'xipa2',
-        name: 'X IPA 2',
-        subject: 'Fisika',
-        studentCount: 28,
-        attendanceRate: 91.2,
-        room: 'Kelas 5B',
-      ),
-      TeacherClassModel(
-        id: 'xiips',
-        name: 'X IPS 1',
-        subject: 'Bahasa Inggris',
-        studentCount: 30,
-        attendanceRate: 96.0,
-        room: 'Kelas 3A',
-      ),
-    ];
+  static Future<Map<String, dynamic>> getDashboard() async {
+    final token = await StorageService.getToken();
+
+    if (token == null) {
+      return {'success': false, 'message': 'Token tidak ditemukan'};
+    }
+
+    return await ApiService.getData(endpoint: '/guru/dashboard', token: token);
   }
 
-  static List<TeacherScheduleModel> getTeacherSchedule() {
-    return const [
-      TeacherScheduleModel(
-        day: 'Senin',
-        time: '08:00 - 09:30',
-        subject: 'Matematika',
-        room: 'X IPA 1',
-        className: 'Lab 2',
-      ),
-      TeacherScheduleModel(
-        day: 'Selasa',
-        time: '10:00 - 11:30',
-        subject: 'Fisika',
-        room: 'X IPA 2',
-        className: 'Kelas 5B',
-      ),
-      TeacherScheduleModel(
-        day: 'Rabu',
-        time: '13:00 - 14:30',
-        subject: 'Bahasa Inggris',
-        room: 'X IPS 1',
-        className: 'Kelas 3A',
-      ),
-    ];
+  static Future<List<TeacherClassModel>> getTeacherClasses() async {
+    final result = await getDashboard();
+    if (result['success'] != true) return [];
+
+    final data = result['data'];
+    if (data is Map<String, dynamic>) {
+      final classes = data['classes'] ?? data['teacher_classes'] ?? [];
+      if (classes is List) {
+        return classes
+            .map(
+              (item) => TeacherClassModel.fromJson(
+                Map<String, dynamic>.from(item as Map),
+              ),
+            )
+            .toList();
+      }
+    }
+    return [];
   }
 
-  static List<Map<String, dynamic>> getStudentsByClass(String classId) {
-    final students = {
-      'xipa1': [
-        {
-          'id': 's1',
-          'name': 'Rafi Ahmad',
-          'nis': '12001',
-          'score': 88,
-          'attendance': 96,
-        },
-        {
-          'id': 's2',
-          'name': 'Maya Putri',
-          'nis': '12002',
-          'score': 92,
-          'attendance': 98,
-        },
-      ],
-      'xipa2': [
-        {
-          'id': 's3',
-          'name': 'Yoga Pratama',
-          'nis': '12011',
-          'score': 81,
-          'attendance': 94,
-        },
-        {
-          'id': 's4',
-          'name': 'Nadia Sari',
-          'nis': '12012',
-          'score': 86,
-          'attendance': 92,
-        },
-      ],
-      'xiips': [
-        {
-          'id': 's5',
-          'name': 'Dewi Lestari',
-          'nis': '12021',
-          'score': 90,
-          'attendance': 97,
-        },
-      ],
-    };
+  // ================= SCHEDULES =================
 
-    return students[classId] ?? [];
+  static Future<List<TeacherScheduleModel>> getTeacherSchedule() async {
+    final result = await getDashboard();
+    if (result['success'] != true) return [];
+
+    final data = result['data'];
+    if (data is Map<String, dynamic>) {
+      final schedule = data['schedule'] ?? data['teacher_schedule'] ?? [];
+      if (schedule is List) {
+        return schedule
+            .map(
+              (item) => TeacherScheduleModel.fromJson(
+                Map<String, dynamic>.from(item as Map),
+              ),
+            )
+            .toList();
+      }
+    }
+    return [];
   }
 
-  static List<AttendanceModel> getAttendanceList() {
-    return [
-      AttendanceModel(
-        studentName: 'Rafi Ahmad',
-        nis: '12001',
-        status: AttendanceStatus.present,
-        detail: 'Masuk tepat waktu',
-      ),
-      AttendanceModel(
-        studentName: 'Maya Putri',
-        nis: '12002',
-        status: AttendanceStatus.present,
-        detail: 'Sedang praktik',
-      ),
-      AttendanceModel(
-        studentName: 'Yoga Pratama',
-        nis: '12011',
-        status: AttendanceStatus.absent,
-        detail: 'Izin sakit',
-      ),
-      AttendanceModel(
-        studentName: 'Nadia Sari',
-        nis: '12012',
-        status: AttendanceStatus.late,
-        detail: 'Terlambat 5 menit',
-      ),
-    ];
+  static Future<Map<String, dynamic>> createSchedule(Map<String, dynamic> data) async {
+    final token = await StorageService.getToken();
+    if (token == null) return {'success': false, 'message': 'Token tidak ditemukan'};
+    return await ApiService.postData(
+      endpoint: '/guru/schedules',
+      token: token,
+      data: data,
+    );
+  }
+
+  static Future<Map<String, dynamic>> updateSchedule(String id, Map<String, dynamic> data) async {
+    final token = await StorageService.getToken();
+    if (token == null) return {'success': false, 'message': 'Token tidak ditemukan'};
+    return await ApiService.putData(
+      endpoint: '/guru/schedules/$id',
+      token: token,
+      data: data,
+    );
+  }
+
+  static Future<Map<String, dynamic>> deleteSchedule(String id) async {
+    final token = await StorageService.getToken();
+    if (token == null) return {'success': false, 'message': 'Token tidak ditemukan'};
+    return await ApiService.deleteData(
+      endpoint: '/guru/schedules/$id',
+      token: token,
+    );
+  }
+
+  // ================= GRADES =================
+
+  static Future<Map<String, dynamic>> saveGrade(Map<String, dynamic> data) async {
+    final token = await StorageService.getToken();
+    if (token == null) return {'success': false, 'message': 'Token tidak ditemukan'};
+    // API endpoint assumes /guru/grades
+    return await ApiService.postData(
+      endpoint: '/guru/grades',
+      token: token,
+      data: data,
+    );
+  }
+
+  static Future<Map<String, dynamic>> updateGrade(String id, Map<String, dynamic> data) async {
+    final token = await StorageService.getToken();
+    if (token == null) return {'success': false, 'message': 'Token tidak ditemukan'};
+    return await ApiService.putData(
+      endpoint: '/guru/grades/$id',
+      token: token,
+      data: data,
+    );
+  }
+
+  // ================= STUDENTS & ATTENDANCE =================
+
+  static Future<List<Map<String, dynamic>>> getStudentsByClass(
+    String classId,
+  ) async {
+    final token = await StorageService.getToken();
+
+    if (token == null) {
+      return [];
+    }
+
+    final result = await ApiService.getData(
+      endpoint: '/guru/class/$classId/students',
+      token: token,
+    );
+
+    if (result['success'] != true) return [];
+    final data = result['data'];
+    if (data is List) {
+      return data
+          .map((item) => Map<String, dynamic>.from(item as Map))
+          .toList();
+    }
+    if (data is Map<String, dynamic> && data['students'] is List) {
+      return (data['students'] as List)
+          .map((item) => Map<String, dynamic>.from(item as Map))
+          .toList();
+    }
+    return [];
+  }
+
+  static Future<List<AttendanceModel>> getAttendanceList() async {
+    final token = await StorageService.getToken();
+
+    if (token == null) {
+      return [];
+    }
+
+    final result = await ApiService.getData(
+      endpoint: '/guru/attendance',
+      token: token,
+    );
+    if (result['success'] != true) return [];
+
+    final data = result['data'];
+    if (data is List) {
+      return data
+          .map(
+            (item) => AttendanceModel.fromJson(
+              Map<String, dynamic>.from(item as Map),
+            ),
+          )
+          .toList();
+    }
+    if (data is Map<String, dynamic> && data['attendance'] is List) {
+      return (data['attendance'] as List)
+          .map(
+            (item) => AttendanceModel.fromJson(
+              Map<String, dynamic>.from(item as Map),
+            ),
+          )
+          .toList();
+    }
+    return [];
   }
 }

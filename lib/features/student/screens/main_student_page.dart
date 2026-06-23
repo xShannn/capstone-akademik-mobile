@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
-// Sesuaikan import di bawah dengan path project kamu
-import 'package:mobile_sekolah/features/student/screens/home_student_page.dart'; // path home page
-import 'package:mobile_sekolah/features/student/screens/grade_page.dart'; // path grade page
-import 'package:mobile_sekolah/features/student/screens/task_page.dart'; // path task page
-import 'package:mobile_sekolah/features/student/screens/profile_page.dart'; // path profile
+import 'package:mobile_sekolah/features/student/models/student_attendance_model.dart';
+import 'package:mobile_sekolah/features/student/models/student_dashboard_model.dart';
+import 'package:mobile_sekolah/features/student/models/student_grade_model.dart';
+import 'package:mobile_sekolah/features/student/models/student_schedule_model.dart';
+import 'package:mobile_sekolah/features/student/models/student_task_model.dart';
+import 'package:mobile_sekolah/features/student/screens/grade_page.dart';
+import 'package:mobile_sekolah/features/student/screens/home_student_page.dart';
+import 'package:mobile_sekolah/features/student/screens/profile_page.dart';
+import 'package:mobile_sekolah/features/student/screens/task_page.dart';
+import 'package:mobile_sekolah/features/student/services/student_service.dart';
+import 'package:mobile_sekolah/shared/screens/notification_page.dart';
 
 class MainStudentPage extends StatefulWidget {
   const MainStudentPage({super.key});
@@ -15,57 +21,45 @@ class MainStudentPage extends StatefulWidget {
 class _MainStudentPageState extends State<MainStudentPage> {
   int _selectedIndex = 0;
   late PageController _pageController;
+  bool _isLoading = true;
+  StudentDashboardModel? dashboard;
+  List<StudentTaskModel> tasks = [];
+  List<StudentGradeModel> grades = [];
+  List<StudentScheduleModel> schedules = [];
 
-  // --- 1. PINDAHKAN DATA GLOBAL KE SINI ---
-  final List<Map<String, dynamic>> _globalTasks = [
-    {
-      'title': 'Tugas Fisika Bab 4',
-      'teacher': 'Bu Rina',
-      'due': '1 May',
-      'desc': 'LKS Halaman 34',
-      'isDone': true,
-    },
-    {
-      'title': 'Essay B. Indonesia',
-      'teacher': 'Bu Rina',
-      'due': '1 May',
-      'desc': 'Halaman 14',
-      'isDone': false,
-    },
-    {
-      'title': 'Laporan Praktikum Kimia',
-      'teacher': 'Pak Budi',
-      'due': '3 May',
-      'desc': 'Bab Asam Basa',
-      'isDone': false,
-    },
-    {
-      'title': 'PR Matematika',
-      'teacher': 'Bu Siti',
-      'due': '5 May',
-      'desc': 'Latihan Soal 2.1',
-      'isDone': false,
-    },
-    {
-      'title': 'Presentasi Sejarah',
-      'teacher': 'Pak Anwar',
-      'due': '10 May',
-      'desc': 'PPT Kemerdekaan',
-      'isDone': true,
-    },
-  ];
-
-  // Fungsi untuk mengubah status tugas dari mana saja
-  void _toggleTaskStatus(Map<String, dynamic> task) {
+  Future<void> loadData() async {
     setState(() {
-      task['isDone'] = !task['isDone'];
+      _isLoading = true;
     });
+
+    try {
+      final dashboardResult = await StudentService.getDashboard();
+      final taskResult = await StudentService.getTaskList();
+      final gradeResult = await StudentService.getGradeList();
+      final scheduleResult = await StudentService.getScheduleList();
+
+      setState(() {
+        dashboard = StudentDashboardModel.fromJson(dashboardResult);
+        tasks = taskResult.map(StudentTaskModel.fromJson).toList();
+        grades = gradeResult.map(StudentGradeModel.fromJson).toList();
+        schedules = scheduleResult.map(StudentScheduleModel.fromJson).toList();
+      });
+    } catch (e) {
+      debugPrint(e.toString());
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
+
+  final List<String> _titles = ['Dashboard', 'Nilai', 'Tugas', 'Profil'];
 
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(initialPage: _selectedIndex);
+    _pageController = PageController();
+    loadData();
   }
 
   @override
@@ -74,55 +68,84 @@ class _MainStudentPageState extends State<MainStudentPage> {
     super.dispose();
   }
 
-  void _onItemTapped(int index) {
+  void onTabChange(int index) {
     setState(() {
       _selectedIndex = index;
     });
-    _pageController.animateToPage(
-      index,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
+    _pageController.jumpToPage(index);
+  }
+
+  void toggleTask(StudentTaskModel task) {
+    setState(() {
+      final index = tasks.indexWhere((item) => item.id == task.id);
+      if (index != -1) {
+        tasks[index] = StudentTaskModel(
+          id: task.id,
+          title: task.title,
+          description: task.description,
+          teacher: task.teacher,
+          deadline: task.deadline,
+          isDone: !task.isDone,
+        );
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: PageView(
-        controller: _pageController,
-        physics: const NeverScrollableScrollPhysics(),
-        children: [
-          // Kita berikan fungsi _onItemTapped ke halaman anak-anaknya
-          // --- 2. KIRIM DATA KE ANAK-ANAKNYA ---
-          HomeStudentPage(onTabChange: _onItemTapped, tasks: _globalTasks),
-          GradePage(onTabChange: _onItemTapped),
-          TaskPage(
-            onTabChange: _onItemTapped,
-            tasks: _globalTasks,
-            onToggleTask: _toggleTaskStatus,
-          ),
-          const ProfilePage(),
-        ],
-      ),
+      appBar: _selectedIndex == 3
+          ? null
+          : AppBar(
+              backgroundColor: const Color(0xFF0F42B3),
+              centerTitle: true,
+              title: Text(_titles[_selectedIndex]),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.notifications),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const NotificationPage(),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+      body: _isLoading || dashboard == null
+          ? const Center(child: CircularProgressIndicator())
+          : PageView(
+              controller: _pageController,
+              physics: const NeverScrollableScrollPhysics(),
+              children: [
+                HomeStudentPage(
+                  onTabChange: onTabChange,
+                  dashboard: dashboard!,
+                  schedules: schedules,
+                  tasks: tasks,
+                ),
+                GradePage(onTabChange: onTabChange, grades: grades),
+                TaskPage(
+                  onTabChange: onTabChange,
+                  tasks: tasks,
+                  onToggleTask: toggleTask,
+                ),
+                const ProfilePage(),
+              ],
+            ),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: const Color(0xFFFFFFFF),
         currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
+        onTap: onTabChange,
         type: BottomNavigationBarType.fixed,
         selectedItemColor: const Color(0xFF0F42B3),
         unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart_outlined),
-            activeIcon: Icon(Icons.bar_chart),
-            label: 'Grade',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.task_alt), label: 'Task'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            label: 'Profile',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Nilai'),
+          BottomNavigationBarItem(icon: Icon(Icons.task), label: 'Tugas'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
         ],
       ),
     );

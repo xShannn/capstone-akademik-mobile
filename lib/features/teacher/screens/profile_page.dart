@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_sekolah/features/student/screens/edit_profile_page.dart';
 import 'package:mobile_sekolah/services/storage_service.dart';
 import 'package:mobile_sekolah/shared/screens/profile_page.dart';
 
@@ -12,15 +11,10 @@ class ProfilePage extends StatelessWidget {
       future: StorageService.getUser(),
       builder: (context, snapshot) {
         final user = snapshot.data;
-        final name =
-            user?['name']?.toString() ??
-            user?['username']?.toString() ??
-            'Student';
-        final role = user?['role']?.toString() ?? 'Student';
-        final subtitle =
-            user?['class_name']?.toString() ??
-            user?['student_class']?.toString() ??
-            '';
+        final name = user?['name']?.toString() ?? user?['username']?.toString() ?? 'Teacher';
+        final role = user?['role']?.toString() ?? 'Guru';
+        final subtitle = user?['nip']?.toString() ?? 'Guru';
+        
         final initials = name
             .split(' ')
             .where((part) => part.isNotEmpty)
@@ -33,13 +27,8 @@ class ProfilePage extends StatelessWidget {
           name: name,
           role: role,
           subtitle: subtitle,
-          initials: initials.isEmpty ? 'ST' : initials,
-          onEditProfile: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const EditProfilePage()),
-            );
-          },
+          initials: initials.isEmpty ? 'GR' : initials,
+          showEditProfile: false,
         );
       },
     );

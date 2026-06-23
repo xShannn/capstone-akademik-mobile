@@ -1,47 +1,36 @@
 import 'package:flutter/material.dart';
-import '../services/admin_service.dart';
+import 'package:mobile_sekolah/services/storage_service.dart';
+import 'package:mobile_sekolah/shared/screens/profile_page.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final admin = AdminService.getAdmin();
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: StorageService.getUser(),
+      builder: (context, snapshot) {
+        final user = snapshot.data;
+        final name = user?['name']?.toString() ?? user?['username']?.toString() ?? 'Admin';
+        final role = user?['role']?.toString() ?? 'Administrator';
+        final subtitle = user?['school_name']?.toString() ?? 'Sekolah';
+        
+        final initials = name
+            .split(' ')
+            .where((part) => part.isNotEmpty)
+            .map((part) => part[0])
+            .take(2)
+            .join()
+            .toUpperCase();
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FF),
-      appBar: AppBar(
-        title: const Text('Profile'),
-        backgroundColor: const Color(0xFF093FB4),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Admin Profile',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-            const SizedBox(height: 20),
-            _detailRow('Name', admin.name),
-            const SizedBox(height: 12),
-            _detailRow('Email', admin.email),
-            const SizedBox(height: 12),
-            _detailRow('School', admin.schoolName),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _detailRow(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: const TextStyle(color: Colors.grey)),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
-      ],
+        return SharedProfilePage(
+          name: name,
+          role: role,
+          subtitle: subtitle,
+          initials: initials.isEmpty ? 'AD' : initials,
+          showEditProfile: false,
+        );
+      },
     );
   }
 }

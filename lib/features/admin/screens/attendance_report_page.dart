@@ -7,8 +7,6 @@ class AttendanceReportPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final reports = AdminService.getAttendanceReport();
-
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FF),
       appBar: AppBar(
@@ -17,14 +15,35 @@ class AttendanceReportPage extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
-        child: ListView(
-          children: reports.map((report) {
-            return AdminReportCard(
-              title: report['date'] ?? '',
-              subtitle: 'Kehadiran ${report['present']}',
-              value: report['notes'] ?? '',
+        child: FutureBuilder<List<Map<String, dynamic>>>(
+          future: AdminService.getAttendanceReport(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (snapshot.hasError) {
+              return Center(child: Text(snapshot.error.toString()));
+            }
+
+            final reports = snapshot.data ?? [];
+            if (reports.isEmpty) {
+              return const Center(child: Text('Belum ada laporan presensi.'));
+            }
+
+            return ListView(
+              children: reports.map((report) {
+                return AdminReportCard(
+                  title: report['date']?.toString() ?? '',
+                  subtitle: 'Kehadiran ${report['present']?.toString() ?? '-'}',
+                  value:
+                      report['notes']?.toString() ??
+                      report['remarks']?.toString() ??
+                      '',
+                );
+              }).toList(),
             );
-          }).toList(),
+          },
         ),
       ),
     );

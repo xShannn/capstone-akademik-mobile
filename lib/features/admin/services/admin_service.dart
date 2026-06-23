@@ -1,89 +1,272 @@
-import '../models/admin_model.dart';
-import '../models/school_stat_model.dart';
+import 'package:mobile_sekolah/services/api_service.dart';
+import 'package:mobile_sekolah/services/storage_service.dart';
 
 class AdminService {
-  static AdminModel getAdmin() {
-    return AdminModel(
-      id: 'a1',
-      name: 'Admin Sekolah',
-      email: 'admin@ sekolah.com',
-      schoolName: 'SMA Baitul Insan',
-      stats: getSchoolStats(),
+  // ==========================================
+  // DASHBOARD & ADMIN INFO
+  // ==========================================
+  static Future<Map<String, dynamic>> getDashboard() async {
+    final token = await StorageService.getToken();
+
+    if (token == null) {
+      return {'success': false, 'message': 'Token tidak ditemukan'};
+    }
+
+    return await ApiService.getData(endpoint: '/admin/dashboard', token: token);
+  }
+
+  static Future<Map<String, dynamic>?> getAdmin() async {
+    return await StorageService.getUser();
+  }
+
+  // ==========================================
+  // FUNGSI BANTUAN UNTUK PARSING LIST
+  // ==========================================
+  static List<Map<String, dynamic>> _extractList(
+    dynamic result,
+    String customKey,
+  ) {
+    if (result == null) return [];
+
+    if (result is List) {
+      return result
+          .map((item) => Map<String, dynamic>.from(item as Map))
+          .toList();
+    }
+
+    if (result is Map<String, dynamic>) {
+      if (result['data'] is Map<String, dynamic>) {
+        if (result['data'][customKey] is List) {
+          return (result['data'][customKey] as List)
+              .map((item) => Map<String, dynamic>.from(item as Map))
+              .toList();
+        }
+
+        if (result['data']['data'] is List) {
+          return (result['data']['data'] as List)
+              .map((item) => Map<String, dynamic>.from(item as Map))
+              .toList();
+        }
+      }
+
+      if (result['data'] is List) {
+        return (result['data'] as List)
+            .map((item) => Map<String, dynamic>.from(item as Map))
+            .toList();
+      }
+
+      if (result[customKey] is List) {
+        return (result[customKey] as List)
+            .map((item) => Map<String, dynamic>.from(item as Map))
+            .toList();
+      }
+    }
+
+    return [];
+  }
+
+  // ==========================================
+  // MANAGE STUDENTS (SISWA)
+  // ==========================================
+  static Future<List<Map<String, dynamic>>> getStudents() async {
+    final token = await StorageService.getToken();
+    if (token == null) return [];
+
+    final result = await ApiService.getData(
+      endpoint: '/admin/students',
+      token: token,
+    );
+
+    return _extractList(result, 'students');
+  }
+
+  static Future<Map<String, dynamic>> createStudent(
+    Map<String, dynamic> data,
+  ) async {
+    final token = await StorageService.getToken();
+    if (token == null) {
+      return {'success': false, 'message': 'Token tidak ditemukan'};
+    }
+
+    return await ApiService.postData(
+      endpoint: '/admin/students',
+      token: token,
+      data: data,
     );
   }
 
-  static List<SchoolStatModel> getSchoolStats() {
-    return const [
-      SchoolStatModel(
-        label: 'Siswa',
-        value: 720,
-        description: 'Total siswa aktif',
-      ),
-      SchoolStatModel(
-        label: 'Guru',
-        value: 48,
-        description: 'Total guru aktif',
-      ),
-      SchoolStatModel(label: 'Kelas', value: 24, description: 'Jumlah kelas'),
-      SchoolStatModel(
-        label: 'Presensi',
-        value: 98,
-        description: 'Rata-rata presensi',
-      ),
-    ];
+  static Future<Map<String, dynamic>> updateStudent(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
+    final token = await StorageService.getToken();
+    if (token == null) {
+      return {'success': false, 'message': 'Token tidak ditemukan'};
+    }
+
+    return await ApiService.putData(
+      endpoint: '/admin/students/$id',
+      token: token,
+      data: data,
+    );
   }
 
-  static List<Map<String, dynamic>> getStudents() {
-    return const [
-      {'id': 's1', 'name': 'Alya Rahma', 'class': 'X IPA 1', 'status': 'Aktif'},
-      {
-        'id': 's2',
-        'name': 'Fajar Pratama',
-        'class': 'VIII B',
-        'status': 'Aktif',
-      },
-    ];
+  static Future<Map<String, dynamic>> deleteStudent(int id) async {
+    final token = await StorageService.getToken();
+    if (token == null) {
+      return {'success': false, 'message': 'Token tidak ditemukan'};
+    }
+
+    return await ApiService.deleteData(
+      endpoint: '/admin/students/$id',
+      token: token,
+    );
   }
 
-  static List<Map<String, dynamic>> getTeachers() {
-    return const [
-      {
-        'id': 't1',
-        'name': 'Bu Rina',
-        'subject': 'Matematika',
-        'status': 'Aktif',
-      },
-      {'id': 't2', 'name': 'Pak Joko', 'subject': 'IPA', 'status': 'Aktif'},
-    ];
+  // ==========================================
+  // MANAGE TEACHERS (GURU)
+  // ==========================================
+  static Future<List<Map<String, dynamic>>> getTeachers() async {
+    final token = await StorageService.getToken();
+    if (token == null) return [];
+
+    final result = await ApiService.getData(
+      endpoint: '/admin/teachers',
+      token: token,
+    );
+
+    return _extractList(result, 'teachers');
   }
 
-  static List<Map<String, dynamic>> getClasses() {
-    return const [
-      {'id': 'c1', 'name': 'X IPA 1', 'room': 'Lab 2', 'students': 32},
-      {'id': 'c2', 'name': 'VIII B', 'room': 'Kelas 3A', 'students': 28},
-    ];
+  static Future<Map<String, dynamic>> createTeacher(
+    Map<String, dynamic> data,
+  ) async {
+    final token = await StorageService.getToken();
+    if (token == null) {
+      return {'success': false, 'message': 'Token tidak ditemukan'};
+    }
+
+    return await ApiService.postData(
+      endpoint: '/admin/teachers',
+      token: token,
+      data: data,
+    );
   }
 
-  static List<Map<String, String>> getAttendanceReport() {
-    return const [
-      {'date': '01 Jun 2026', 'present': '98%', 'notes': 'Normal'},
-      {'date': '02 Jun 2026', 'present': '96%', 'notes': 'Hujan'},
-      {'date': '03 Jun 2026', 'present': '97%', 'notes': 'Normal'},
-    ];
+  static Future<Map<String, dynamic>> updateTeacher(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
+    final token = await StorageService.getToken();
+    if (token == null) {
+      return {'success': false, 'message': 'Token tidak ditemukan'};
+    }
+
+    return await ApiService.putData(
+      endpoint: '/admin/teachers/$id',
+      token: token,
+      data: data,
+    );
   }
 
-  static List<Map<String, String>> getNotifications() {
-    return const [
-      {
-        'title': 'Rapat Komite Sekolah',
-        'date': 'Hari ini',
-        'message': 'Rapat komite dilaksanakan pukul 15.00.',
-      },
-      {
-        'title': 'Rekap Presensi',
-        'date': 'Kemarin',
-        'message': 'Rekap presensi sudah siap dilihat.',
-      },
-    ];
+  static Future<Map<String, dynamic>> deleteTeacher(int id) async {
+    final token = await StorageService.getToken();
+    if (token == null) {
+      return {'success': false, 'message': 'Token tidak ditemukan'};
+    }
+
+    return await ApiService.deleteData(
+      endpoint: '/admin/teachers/$id',
+      token: token,
+    );
+  }
+
+  // ==========================================
+  // MANAGE CLASSES (KELAS)
+  // ==========================================
+  static Future<List<Map<String, dynamic>>> getClasses() async {
+    final token = await StorageService.getToken();
+    if (token == null) return [];
+
+    final result = await ApiService.getData(
+      endpoint: '/admin/classrooms',
+      token: token,
+    );
+
+    // FIX UTAMA: Menggunakan key 'classrooms' agar sesuai dengan hasil DataMasterController
+    return _extractList(result, 'classrooms');
+  }
+
+  static Future<Map<String, dynamic>> createClass(
+    Map<String, dynamic> data,
+  ) async {
+    final token = await StorageService.getToken();
+    if (token == null) {
+      return {'success': false, 'message': 'Token tidak ditemukan'};
+    }
+
+    return await ApiService.postData(
+      endpoint: '/admin/classrooms',
+      token: token,
+      data: data,
+    );
+  }
+
+  static Future<Map<String, dynamic>> updateClass(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
+    final token = await StorageService.getToken();
+    if (token == null) {
+      return {'success': false, 'message': 'Token tidak ditemukan'};
+    }
+
+    return await ApiService.putData(
+      endpoint: '/admin/classrooms/$id',
+      token: token,
+      data: data,
+    );
+  }
+
+  static Future<Map<String, dynamic>> deleteClass(int id) async {
+    final token = await StorageService.getToken();
+    if (token == null) {
+      return {'success': false, 'message': 'Token tidak ditemukan'};
+    }
+
+    return await ApiService.deleteData(
+      endpoint: '/admin/classrooms/$id',
+      token: token,
+    );
+  }
+
+  // ==========================================
+  // ATTENDANCE REPORT (LAPORAN PRESENSI)
+  // ==========================================
+  static Future<List<Map<String, dynamic>>> getAttendanceReport() async {
+    final token = await StorageService.getToken();
+    if (token == null) return [];
+
+    final result = await ApiService.getData(
+      endpoint: '/admin/attendance-report',
+      token: token,
+    );
+
+    return _extractList(result, 'reports');
+  }
+
+  // ==========================================
+  // NOTIFICATIONS (NOTIFIKASI)
+  // ==========================================
+  static Future<List<Map<String, dynamic>>> getNotifications() async {
+    final token = await StorageService.getToken();
+    if (token == null) return [];
+
+    final result = await ApiService.getData(
+      endpoint: '/admin/notifications',
+      token: token,
+    );
+
+    return _extractList(result, 'notifications');
   }
 }

@@ -9,8 +9,6 @@ class ReportPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final report = ParentService.getReport(child.id);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Report'),
@@ -32,30 +30,50 @@ class ReportPage extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Expanded(
-              child: ListView.builder(
-                itemCount: report.length,
-                itemBuilder: (context, index) {
-                  final item = report[index];
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFFFFF),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          item['subject'] ?? '',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+              child: FutureBuilder<Map<String, dynamic>>(
+                future: ParentService.getReport(child.id),
+
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (!snapshot.hasData) {
+                    return const Center(child: Text('Data tidak ditemukan'));
+                  }
+
+                  final report = List<Map<String, dynamic>>.from(
+                    snapshot.data!['data'] ?? [],
+                  );
+
+                  return ListView.builder(
+                    itemCount: report.length,
+
+                    itemBuilder: (context, index) {
+                      final item = report[index];
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+
+                        padding: const EdgeInsets.all(16),
+
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                        Text(
-                          '${item['score']}',
-                          style: const TextStyle(color: Colors.black87),
+
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                          children: [
+                            Text(item['subject']),
+
+                            Text('${item['score']}'),
+                          ],
                         ),
-                      ],
-                    ),
+                      );
+                    },
                   );
                 },
               ),
