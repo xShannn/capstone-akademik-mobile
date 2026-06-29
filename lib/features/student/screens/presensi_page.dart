@@ -88,8 +88,9 @@ class _PresensiPageState extends State<PresensiPage> {
 
       appBar: AppBar(
         backgroundColor: const Color(0xFF0F42B3),
+        iconTheme: const IconThemeData(color: Colors.white),
 
-        title: const Text('Presensi'),
+        title: const Text('Presensi', style: TextStyle(color: Colors.white)),
       ),
 
       body: isLoading

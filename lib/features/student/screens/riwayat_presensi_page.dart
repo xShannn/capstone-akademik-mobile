@@ -92,8 +92,11 @@ class _RiwayatPresensiPageState extends State<RiwayatPresensiPage> {
 
       appBar: AppBar(
         backgroundColor: const Color(0xFF0F42B3),
-
-        title: const Text('Riwayat Presensi'),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text(
+          'Riwayat Presensi',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
 
       body: isLoading
@@ -129,60 +132,122 @@ class _RiwayatPresensiPageState extends State<RiwayatPresensiPage> {
 
                     borderRadius: BorderRadius.circular(18),
                   ),
-
+                  // ... di dalam itemBuilder (bagian return Container) ...
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
                     children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-
                         children: [
                           Text(
                             subject,
-
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-
                               fontSize: 16,
-
                               color: getTextColor(status),
                             ),
                           ),
-
-                          const SizedBox(height: 5),
-
+                          const SizedBox(height: 6), // Sedikit lebih lega
                           Text(
                             day,
-
-                            style: TextStyle(color: getTextColor(status)),
-                          ),
-
-                          const SizedBox(height: 5),
-
-                          Text(
-                            getStatus(status),
-
                             style: TextStyle(
-                              color: getTextColor(status),
-
-                              fontWeight: FontWeight.bold,
+                              color: getTextColor(
+                                status,
+                              ).withOpacity(0.8), // Sedikit lebih transparan
+                              fontSize: 13,
+                            ),
+                          ),
+                          const SizedBox(height: 10), // Jarak ke label status
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: getTextColor(
+                                status,
+                              ).withOpacity(0.1), // Efek background tipis
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              getStatus(status),
+                              style: TextStyle(
+                                color: getTextColor(status),
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],
                       ),
-
-                      Text(
-                        date,
-
-                        style: TextStyle(
-                          color: getTextColor(status),
-
-                          fontWeight: FontWeight.bold,
+                      // Tanggal ditaruh di pojok kanan atas
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: Text(
+                          date,
+                          style: TextStyle(
+                            color: getTextColor(status).withOpacity(0.7),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     ],
                   ),
+
+                  // child: Row(
+                  //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                  //   children: [
+                  //     Column(
+                  //       crossAxisAlignment: CrossAxisAlignment.start,
+
+                  //       children: [
+                  //         Text(
+                  //           subject,
+
+                  //           style: TextStyle(
+                  //             fontWeight: FontWeight.bold,
+
+                  //             fontSize: 16,
+
+                  //             color: getTextColor(status),
+                  //           ),
+                  //         ),
+
+                  //         const SizedBox(height: 5),
+
+                  //         Text(
+                  //           day,
+
+                  //           style: TextStyle(color: getTextColor(status)),
+                  //         ),
+
+                  //         const SizedBox(height: 5),
+
+                  //         Text(
+                  //           getStatus(status),
+
+                  //           style: TextStyle(
+                  //             color: getTextColor(status),
+
+                  //             fontWeight: FontWeight.bold,
+                  //           ),
+                  //         ),
+                  //       ],
+                  //     ),
+
+                  //     Text(
+                  //       date,
+
+                  //       style: TextStyle(
+                  //         color: getTextColor(status),
+
+                  //         fontWeight: FontWeight.bold,
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
                 );
               },
             ),

@@ -133,8 +133,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF0F42B3),
-
-        title: const Text('Edit Profile'),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text('Edit Profil', style: TextStyle(color: Colors.white)),
       ),
 
       body: SingleChildScrollView(

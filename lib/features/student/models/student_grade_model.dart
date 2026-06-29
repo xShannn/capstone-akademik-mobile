@@ -4,6 +4,7 @@ class StudentGradeModel {
   final String score;
   final String grade;
   final String type;
+  final String semester;
 
   StudentGradeModel({
     required this.id,
@@ -11,6 +12,7 @@ class StudentGradeModel {
     required this.score,
     required this.grade,
     required this.type,
+    required this.semester,
   });
 
   factory StudentGradeModel.fromJson(Map<String, dynamic> json) {
@@ -24,6 +26,7 @@ class StudentGradeModel {
       score: json['score']?.toString() ?? json['nilai']?.toString() ?? '0',
       grade: json['grade']?.toString() ?? json['letter']?.toString() ?? '-',
       type: json['type']?.toString() ?? json['category']?.toString() ?? '-',
+      semester: json['semester'] ?? 'Sem 1',
     );
   }
 }

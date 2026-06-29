@@ -73,8 +73,8 @@ class _CameraScanPageState extends State<CameraScanPage> {
 
       appBar: AppBar(
         backgroundColor: const Color(0xFF0F42B3),
-
-        title: const Text('Scan QR'),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text('Scan QR', style: TextStyle(color: Colors.white)),
       ),
 
       body: isLoading

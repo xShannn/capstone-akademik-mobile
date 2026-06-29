@@ -34,12 +34,8 @@ class _TaskPageState extends State<TaskPage> {
       backgroundColor: const Color(0xFFF8F9FE),
       appBar: AppBar(
         backgroundColor: const Color(0xFF0F42B3),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            widget.onTabChange?.call(0);
-          },
-        ),
+        elevation: 0,
+        // leading dihapus
         title: const Text('Tasks', style: TextStyle(color: Colors.white)),
       ),
       body: Column(
