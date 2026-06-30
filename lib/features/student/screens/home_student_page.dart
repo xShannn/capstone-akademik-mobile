@@ -23,6 +23,7 @@ class HomeStudentPage extends StatelessWidget {
     required this.tasks,
   });
 
+<<<<<<< Updated upstream
   String _getInitials(String name) {
     if (name.isEmpty) return "AK";
     List<String> nameParts = name.trim().split(RegExp(r'\s+'));
@@ -30,6 +31,29 @@ class HomeStudentPage extends StatelessWidget {
       return (nameParts[0][0] + nameParts[1][0]).toUpperCase();
     }
     return nameParts[0][0].toUpperCase();
+=======
+  // --- Fungsi Baru: Mendapatkan nama hari ini ---
+  String _getTodayName() {
+    final int weekday = DateTime.now().weekday;
+    switch (weekday) {
+      case 1:
+        return 'Senin';
+      case 2:
+        return 'Selasa';
+      case 3:
+        return 'Rabu';
+      case 4:
+        return 'Kamis';
+      case 5:
+        return 'Jumat';
+      case 6:
+        return 'Sabtu';
+      case 7:
+        return 'Minggu';
+      default:
+        return '';
+    }
+>>>>>>> Stashed changes
   }
 
   @override
@@ -39,6 +63,10 @@ class HomeStudentPage extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
+<<<<<<< Updated upstream
+=======
+            // Panggil _header dengan context agar bisa baca ukuran layar
+>>>>>>> Stashed changes
             _header(context),
             Padding(
               padding: const EdgeInsets.all(20.0),
@@ -76,6 +104,7 @@ class HomeStudentPage extends StatelessWidget {
                     onTap: () {},
                   ),
                   const SizedBox(height: 12),
+<<<<<<< Updated upstream
                   if (schedules.isEmpty)
                     const EmptyStateWidget(message: 'Belum ada jadwal')
                   else
@@ -92,6 +121,41 @@ class HomeStudentPage extends StatelessWidget {
                         );
                       }).toList(),
                     ),
+=======
+
+                  // --- Bagian Jadwal yang Sudah Di-filter Berdasarkan Hari Ini ---
+                  Builder(
+                    builder: (context) {
+                      final today = _getTodayName();
+                      // Filter jadwal yang harinya sama dengan hari ini
+                      final todaySchedules = schedules
+                          .where(
+                            (s) => s.day.toLowerCase() == today.toLowerCase(),
+                          )
+                          .toList();
+
+                      if (todaySchedules.isEmpty) {
+                        return EmptyStateWidget(
+                          message: 'Tidak ada jadwal untuk hari $today',
+                        );
+                      }
+
+                      return Column(
+                        children: todaySchedules
+                            .map(
+                              (schedule) => ScheduleCard(
+                                day: schedule.day,
+                                time: schedule.time,
+                                subject: schedule.subject,
+                                teacher: schedule.teacher,
+                              ),
+                            )
+                            .toList(),
+                      );
+                    },
+                  ),
+                  // ---------------------------------------------------------------
+>>>>>>> Stashed changes
                 ],
               ),
             ),
@@ -101,6 +165,7 @@ class HomeStudentPage extends StatelessWidget {
     );
   }
 
+<<<<<<< Updated upstream
   // Desain baru untuk membungkus list tugas di dalam satu kartu
   Widget _buildUpcomingTasksCard() {
     return Container(
@@ -133,10 +198,67 @@ class HomeStudentPage extends StatelessWidget {
                   Icons.arrow_forward_ios,
                   size: 14,
                   color: Color(0xFF1E293B),
+=======
+  // Header baru yang melengkung dan tidak kaku
+  Widget _header(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top + 20,
+        left: 24,
+        right: 24,
+        bottom: 30,
+      ),
+      decoration: const BoxDecoration(
+        color: Color(0xFF0F42B3),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Good Morning,',
+                style: TextStyle(color: Colors.white70, fontSize: 16),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                dashboard.name,
+                style: const TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  'Kelas ${dashboard.className}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+>>>>>>> Stashed changes
                 ),
               ),
             ],
           ),
+<<<<<<< Updated upstream
           const SizedBox(height: 16),
           // List Tugas
           if (tasks.isEmpty)
@@ -289,6 +411,19 @@ class HomeStudentPage extends StatelessWidget {
                 ),
               ),
             ],
+=======
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const CircleAvatar(
+              radius: 28,
+              backgroundColor: Colors.transparent,
+              child: Icon(Icons.person, color: Colors.white, size: 32),
+            ),
+>>>>>>> Stashed changes
           ),
         ],
       ),

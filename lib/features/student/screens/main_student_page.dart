@@ -94,7 +94,32 @@ class _MainStudentPageState extends State<MainStudentPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+<<<<<<< Updated upstream
       appBar: null,
+=======
+      // --- PERUBAHAN ADA DI SINI ---
+      // Sembunyikan AppBar bawaan jika sedang di Profile (3) ATAU Home (0)
+      appBar: (_selectedIndex == 3 || _selectedIndex == 0)
+          ? null
+          : AppBar(
+              backgroundColor: const Color(0xFF0F42B3),
+              centerTitle: true,
+              title: Text(_titles[_selectedIndex]),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.notifications),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const NotificationPage(),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+>>>>>>> Stashed changes
       body: _isLoading || dashboard == null
           ? const Center(child: CircularProgressIndicator())
           : PageView(
